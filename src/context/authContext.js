@@ -12,7 +12,7 @@ export function AuthProvider({children}){
 
     const signup = async (email, password) => {
    await createUserWithEmailAndPassword(auth,email,password)
-    
+     
     }
 
     const login = async (email, password) => {

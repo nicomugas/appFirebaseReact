@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/authContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import Alert from './Alert';
+import { async } from '@firebase/util';
 
 
 
@@ -11,7 +13,7 @@ export default function Login() {
         password: '',
     })
 
-    const { login } = useAuth();
+    const { login, loginWithGoogle, resetPassword } = useAuth();
     const [error, setError] = useState();
     const navigate = useNavigate();
 
@@ -24,41 +26,77 @@ export default function Login() {
             [name]: value
         })
 
-    }
+    };
 
-    const handleSubmit =  (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setError('')
         // await login(user.email, user.password)
         // try {
         //     navigate("/");
-            
+
 
         // }  catch (error) {
         //    // alert('hola')
         //      setError(error.message)
-            
+
         // }
         login(user.email, user.password)
-        .then((res) => {
-           navigate('/')
-          })
-         .catch(err => setError(err.code))
+            .then((res) => {
+                navigate('/')
+            })
+            .catch(err => setError(err.code))
+    };
+
+    const handleGoogleSignin = async () => {
+        try {
+            await loginWithGoogle()
+            navigate('/')
+
+        } catch (error) {
+            setError(error.message)
+        }
+
+    }
+
+    const handleForgotPassword = async () => {
+        if (!user.email) return setError('Enter your email')
+
+        try {
+          await  resetPassword(user.email)
+          setError('We sent email wtih a link to reset password')
+        } catch (error) {
+            setError(error.message)
+            
+        }
     }
 
     return (
-        <div>
-            {error && <p>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <label htmlFor='email'>Email</label>
-                <input type="email" name="email" placeholder='yourmail@gmail.com' onChange={handleChange} />
-                <label htmlFor='password'>Password</label>
-                <input type="password" name="password" id="password" onChange={handleChange} />
+        <div className='w-full max-w-xs m-auto '>
+            {error && <Alert message={error} />}
+            <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 m b-4">
 
-                <button>Login</button>
+                <div className='mb-4'>
+                    <label htmlFor='email' className='block text-gray-700 text-sm font-fold mb-2'>Email</label>
+                    <input type="email" name="email" placeholder='yourmail@gmail.com' onChange={handleChange} 
+                    className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'/>
+                </div>
+                <div className='mb-4'>
+                    <label htmlFor='password' className='block text-gray-700 text-sm font-fold mb-2'>Password</label>
+                    <input type="password" name="password" id="password" onChange={handleChange} className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline' />
+                </div>
 
+                <div className='flex items-center justify-between'>
+
+                <button className='bg-blue-500 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'>Login</button>
+                <a href='#!' className='inline-block align-baseline font text-sm text-blue-500 hover:text-blue-800' onClick={handleForgotPassword} >Forgot password?</a>
+
+                </div>
 
             </form>
+
+            <p className='my-4 text-sm flex justify-between px-3'>Don't have an Account <Link to='/register'>Register</Link></p>
+            <button onClick={handleGoogleSignin} className="bg-slate-50 hover:bg-slate-200 text-black shadow-md rounded border-2 border-gray-300 py-2 px-4 w-full">Login With Google</button>
         </div>
     )
 }

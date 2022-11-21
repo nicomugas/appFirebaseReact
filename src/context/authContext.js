@@ -1,6 +1,6 @@
-import {createContext, useContext, useEffect, useState} from 'react';
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import {auth} from '../firebase-config';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../firebase-config';
 
 export const authContext = createContext();
 export const useAuth = () => {
@@ -8,38 +8,47 @@ export const useAuth = () => {
     return context
 }
 
-export function AuthProvider({children}){
+export function AuthProvider({ children }) {
 
-    const [user,setUser] = useState(null);
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const signup = async (email, password) => {
-   await createUserWithEmailAndPassword(auth,email,password) //Para crear un usuario con mail y contaseña
-     
+        await createUserWithEmailAndPassword(auth, email, password) //Para crear un usuario con mail y contaseña
+
     }
 
     const login = async (email, password) => {
-       await signInWithEmailAndPassword(auth,email,password) //Para loguear con mail y contraseña
-        
-        }
-    
-        // cuando carga la app voy a chequear el estado del user con onAuthStateChanged
-        //
-     useEffect (() => {
-       const unsuscribe = onAuthStateChanged(auth, currentUser =>{
-        setUser(currentUser)
+        await signInWithEmailAndPassword(auth, email, password) //Para loguear con mail y contraseña
 
-        setLoading(false)
-    });
-        return () =>unsuscribe();
-    },[])
+    }
 
-    const logout = ()=> signOut(auth)
-    
+    const loginWithGoogle = () => {
+        const googleprovider = new GoogleAuthProvider();
+        return signInWithPopup(auth, googleprovider)
+    }
+
+const resetPassword = (email) => {
+    sendPasswordResetEmail(auth, email )
+}
+
+    // cuando carga la app voy a chequear el estado del user con onAuthStateChanged
+    //
+    useEffect(() => {
+        const unsuscribe = onAuthStateChanged(auth, currentUser => {
+            setUser(currentUser)
+
+            setLoading(false)
+        });
+        return () => unsuscribe();
+    }, [])
+
+    const logout = () => signOut(auth)
+
 
 
     return (
-        <authContext.Provider value={{signup, login, user, logout, loading}}>
+        <authContext.Provider value={{ signup, login, user, logout, loading, loginWithGoogle, resetPassword }}>
             {children}
 
         </authContext.Provider>

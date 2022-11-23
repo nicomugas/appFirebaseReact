@@ -16,11 +16,6 @@ export default function App() {
       <AuthProvider>
         <Routes>
           
-          
-
-         
-           
-         
           <Route path="/" element={
             <ProtectedRoute>
               <Home />
